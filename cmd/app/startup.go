@@ -6,6 +6,7 @@ import (
 	controllers2 "simple-order-api/cmd/controllers"
 	"simple-order-api/cmd/docs"
 	"simple-order-api/cmd/models"
+	"simple-order-api/cmd/repositories"
 	"simple-order-api/cmd/services"
 )
 
@@ -16,19 +17,19 @@ func StartServer() {
 	}
 	docs.SwaggerInfo.Host = serverConfig.Host
 	engine := setHttpServerConfigs()
-	orderService := services.NewOrderService()
+	orderRepository := repositories.NewOrderRepository()
+	orderService := services.NewOrderService(orderRepository)
 	orderController := controllers2.NewOrderController(orderService)
 	swaggerController := controllers2.NewSwaggerController()
 	swaggerController.Register(engine)
 	orderController.Register(engine)
 
+	fmt.Println("Order web server begins to start!")
+
 	if err := engine.Run(serverConfig.Port); err != nil {
-		fmt.Println("An error has occured while starting web server")
+		fmt.Println("An error has occured while starting web server!")
 		panic(true)
 	}
-
-	fmt.Println("Order web server started successfully!")
-
 }
 
 func setHttpServerConfigs() *gin.Engine {

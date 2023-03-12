@@ -45,6 +45,38 @@ paths:
             items:
               $ref: '#/definitions/response.Order'
             type: array
+        "500":
+          description: Internal Server Error
+          schema: {}
+      tags:
+      - OrderController
+  /orders/{orderNumber}:
+    get:
+      description: Get Order By OrderNumber
+      parameters:
+      - description: orderNumber
+        in: path
+        name: orderNumber
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Order'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema: {}
       tags:
       - OrderController
 swagger: "2.0"

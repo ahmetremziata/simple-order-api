@@ -43,6 +43,54 @@ const docTemplate = `{
                                 "$ref": "#/definitions/response.Order"
                             }
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/orders/{orderNumber}": {
+            "get": {
+                "description": "Get Order By OrderNumber",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OrderController"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "orderNumber",
+                        "name": "orderNumber",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Order"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
                     }
                 }
             }
