@@ -23,8 +23,8 @@ func (o OrderServiceImp) GetOrders() ([]response.Order, *response.ErrorResponse)
 }
 
 func (o OrderServiceImp) GetOrder(orderNumber string) (*response.Order, *response.ErrorResponse) {
-	order, _ := o.orderRepository.FetchOrderByOrderNumber(orderNumber)
-	return order, nil
+	order, err := o.orderRepository.FetchOrderByOrderNumber(orderNumber)
+	return order, err
 }
 
 func (o OrderServiceImp) DeleteOrder(orderNumber string) *response.ErrorResponse {
@@ -49,7 +49,8 @@ func (o OrderServiceImp) DeleteOrder(orderNumber string) *response.ErrorResponse
 		return &errorResp
 	}
 
-	return o.orderRepository.DeleteOrder(orderNumber)
+	deleteErr := o.orderRepository.DeleteOrder(orderNumber)
+	return deleteErr
 }
 
 func NewOrderService(orderRepository repositories.OrderRepository) OrderService {
