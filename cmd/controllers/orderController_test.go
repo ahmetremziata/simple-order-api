@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -52,7 +51,9 @@ func TestGetOrders_WhenServiceReturnsError_ReturnsInternalServerError(t *testing
 	//Given
 	engine := gin.New()
 	mockOrderService := &mocks.FakeOrderService{}
-	serviceErr := errors.New("service Error")
+	serviceErr := response.NewErrorBuilder().
+		SetError(http.StatusInternalServerError, "test").
+		Build()
 
 	mockOrderService.On("GetOrders").Return(nil, &serviceErr)
 	controller := NewOrderController(mockOrderService)
@@ -64,5 +65,8 @@ func TestGetOrders_WhenServiceReturnsError_ReturnsInternalServerError(t *testing
 	engine.ServeHTTP(w, req)
 
 	//Then
+	errResponse := response.ErrorResponse{}
+	_ = json.Unmarshal(w.Body.Bytes(), &errResponse)
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	assert.Equal(t, errResponse, serviceErr)
 }

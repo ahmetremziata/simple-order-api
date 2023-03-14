@@ -1,4 +1,11 @@
 definitions:
+  response.ErrorResponse:
+    properties:
+      message:
+        type: string
+      statusCode:
+        type: integer
+    type: object
   response.Order:
     properties:
       city:
@@ -47,10 +54,38 @@ paths:
             type: array
         "500":
           description: Internal Server Error
-          schema: {}
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       tags:
       - OrderController
   /orders/{orderNumber}:
+    delete:
+      description: Delete Order
+      parameters:
+      - description: orderNumber
+        in: path
+        name: orderNumber
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      tags:
+      - OrderController
     get:
       description: Get Order By OrderNumber
       parameters:
@@ -69,14 +104,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/response.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            type: string
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
-          schema: {}
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       tags:
       - OrderController
 swagger: "2.0"

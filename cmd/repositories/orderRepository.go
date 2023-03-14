@@ -5,18 +5,19 @@ import (
 )
 
 type OrderRepository interface {
-	FetchOrders() ([]response.Order, *error)
-	FetchOrderByOrderNumber(orderNumber string) (*response.Order, *error)
+	FetchOrders() ([]response.Order, *response.ErrorResponse)
+	FetchOrderByOrderNumber(orderNumber string) (*response.Order, *response.ErrorResponse)
+	DeleteOrder(orderNumber string) *response.ErrorResponse
 }
 
 type OrderRepositoryImp struct{}
 
-func (o OrderRepositoryImp) FetchOrders() ([]response.Order, *error) {
+func (o OrderRepositoryImp) FetchOrders() ([]response.Order, *response.ErrorResponse) {
 	orders := getOrders()
 	return orders, nil
 }
 
-func (o OrderRepositoryImp) FetchOrderByOrderNumber(orderNumber string) (*response.Order, *error) {
+func (o OrderRepositoryImp) FetchOrderByOrderNumber(orderNumber string) (*response.Order, *response.ErrorResponse) {
 	orders := getOrders()
 	for _, order := range orders {
 		if order.OrderNumber == orderNumber {
@@ -25,6 +26,11 @@ func (o OrderRepositoryImp) FetchOrderByOrderNumber(orderNumber string) (*respon
 	}
 
 	return nil, nil
+}
+
+func (o OrderRepositoryImp) DeleteOrder(_ string) *response.ErrorResponse {
+	// Think that we delete order with success
+	return nil
 }
 
 // This function represents data for external service
