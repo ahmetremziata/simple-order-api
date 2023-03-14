@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,6 +40,12 @@ func (o *OrderControllerSuite) sendRequest(method, uri string, body io.Reader) {
 	o.engine.ServeHTTP(o.recorder, req)
 }
 
+func (o *OrderControllerSuite) readError() response.ErrorResponse {
+	errResponse := response.ErrorResponse{}
+	_ = json.Unmarshal(o.recorder.Body.Bytes(), &errResponse)
+	return errResponse
+}
+
 func (o *OrderControllerSuite) TestGetOrdersWithSuite() {
 	//Given
 	orders := []response.Order{
@@ -73,7 +78,9 @@ func (o *OrderControllerSuite) TestGetOrdersWithSuite() {
 
 func (o *OrderControllerSuite) TestGetOrdersWithSuite_WhenServiceReturnsError_ReturnsInternalServerError() {
 	//Given
-	serviceErr := errors.New("service Error")
+	serviceErr := response.NewErrorBuilder().
+		SetError(http.StatusInternalServerError, "test").
+		Build()
 	o.mockOrderService.On("GetOrders").Return(nil, &serviceErr)
 
 	//When
@@ -81,4 +88,5 @@ func (o *OrderControllerSuite) TestGetOrdersWithSuite_WhenServiceReturnsError_Re
 
 	//Then
 	assert.Equal(o.T(), http.StatusInternalServerError, o.recorder.Code)
+	assert.Equal(o.T(), serviceErr, o.readError())
 }
