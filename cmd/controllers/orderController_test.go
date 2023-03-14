@@ -5,39 +5,17 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/http/httptest"
+	"simple-order-api/cmd/mocks"
 	"simple-order-api/cmd/models/response"
 	"testing"
 )
 
-type FakeOrderService struct {
-	mock.Mock
-}
-
-func (service *FakeOrderService) GetOrders() ([]response.Order, *error) {
-	result := service.Called()
-	if result.Get(0) != nil {
-		return result.Get(0).([]response.Order), nil
-	}
-
-	return nil, result.Get(1).(*error)
-}
-
-func (service *FakeOrderService) GetOrder(orderNumber string) (*response.Order, *error) {
-	result := service.Called(orderNumber)
-	if result.Get(0) != nil {
-		return result.Get(0).(*response.Order), nil
-	}
-
-	return nil, result.Get(1).(*error)
-}
-
 func TestGetOrders(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &FakeOrderService{}
+	mockOrderService := &mocks.FakeOrderService{}
 	orders := []response.Order{
 		{
 			OrderNumber:  "1",
@@ -73,7 +51,7 @@ func TestGetOrders(t *testing.T) {
 func TestGetOrders_WhenServiceReturnsError_ReturnsInternalServerError(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &FakeOrderService{}
+	mockOrderService := &mocks.FakeOrderService{}
 	serviceErr := errors.New("service Error")
 
 	mockOrderService.On("GetOrders").Return(nil, &serviceErr)
