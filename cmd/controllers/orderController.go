@@ -61,7 +61,7 @@ func (controller *OrderController) GetOrderByOrderNumber() func(context *gin.Con
 
 		order, errorResp := controller.orderService.GetOrder(orderNumber)
 		if errorResp != nil {
-			context.JSON(http.StatusInternalServerError, errorResp)
+			context.JSON(errorResp.StatusCode, errorResp)
 			return
 		}
 

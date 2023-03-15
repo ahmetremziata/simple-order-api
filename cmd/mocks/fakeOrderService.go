@@ -20,6 +20,10 @@ func (service *FakeOrderService) GetOrders() ([]response.Order, *response.ErrorR
 
 func (service *FakeOrderService) GetOrder(orderNumber string) (*response.Order, *response.ErrorResponse) {
 	result := service.Called(orderNumber)
+	if result.Get(0) == nil && result.Get(1) == nil {
+		return nil, nil
+	}
+
 	if result.Get(0) != nil {
 		return result.Get(0).(*response.Order), nil
 	}
