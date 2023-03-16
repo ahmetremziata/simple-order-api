@@ -1,4 +1,23 @@
 definitions:
+  request.CreateOrderRequest:
+    properties:
+      city:
+        type: string
+      currencyCode:
+        type: string
+      district:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      orderNumber:
+        type: string
+      string:
+        type: string
+      totalAmount:
+        type: number
+    type: object
   response.ErrorResponse:
     properties:
       message:
@@ -52,6 +71,34 @@ paths:
             items:
               $ref: '#/definitions/response.Order'
             type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      tags:
+      - OrderController
+    post:
+      description: Create Order
+      parameters:
+      - description: Create Order Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:

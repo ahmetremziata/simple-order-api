@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"simple-order-api/cmd/constants"
 	enum "simple-order-api/cmd/enums"
+	"simple-order-api/cmd/models/request"
 	"simple-order-api/cmd/models/response"
 	"simple-order-api/cmd/repositories"
 )
@@ -12,6 +13,7 @@ type OrderService interface {
 	GetOrders() ([]response.Order, *response.ErrorResponse)
 	GetOrder(orderNumber string) (*response.Order, *response.ErrorResponse)
 	DeleteOrder(orderNumber string) *response.ErrorResponse
+	CreateOrder(createOrderRequest request.CreateOrderRequest) *response.ErrorResponse
 }
 
 type OrderServiceImp struct {
@@ -25,6 +27,22 @@ func (o OrderServiceImp) GetOrders() ([]response.Order, *response.ErrorResponse)
 func (o OrderServiceImp) GetOrder(orderNumber string) (*response.Order, *response.ErrorResponse) {
 	order, err := o.orderRepository.FetchOrderByOrderNumber(orderNumber)
 	return order, err
+}
+
+func (o OrderServiceImp) CreateOrder(createOrderRequest request.CreateOrderRequest) *response.ErrorResponse {
+	order, errorResp := o.GetOrder(createOrderRequest.OrderNumber)
+	if errorResp != nil {
+		return errorResp
+	}
+
+	if order != nil {
+		errorResp := response.NewErrorBuilder().
+			SetError(http.StatusConflict, constants.SameOrderFoundByUniqueId).
+			Build()
+		return &errorResp
+	}
+
+	return o.orderRepository.CreateOrder(createOrderRequest)
 }
 
 func (o OrderServiceImp) DeleteOrder(orderNumber string) *response.ErrorResponse {

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -12,6 +13,7 @@ import (
 	"net/http/httptest"
 	"simple-order-api/cmd/constants"
 	"simple-order-api/cmd/mocks"
+	"simple-order-api/cmd/models/request"
 	"simple-order-api/cmd/models/response"
 	"testing"
 )
@@ -158,6 +160,207 @@ func (o *OrderControllerSuite) TestGetOrderByOrderNumberWithSuite_WhenServiceRet
 
 	//Then
 	assert.Equal(o.T(), http.StatusInternalServerError, o.recorder.Code)
+	assert.Equal(o.T(), serviceErr, o.readError())
+}
+
+func (o *OrderControllerSuite) TestCreateOrderWithSuite() {
+	//Given
+	o.mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	o.sendRequest("POST", "/orders", reqBodyBytes)
+
+	//Then
+	assert.Equal(o.T(), http.StatusCreated, o.recorder.Code)
+	var createOrderRequest = request.CreateOrderRequest{
+		OrderNumber:  "1",
+		FirstName:    "Test",
+		LastName:     "Sample",
+		TotalAmount:  10.2,
+		Address:      "address",
+		City:         "İstanbul",
+		District:     "Bakırköy",
+		CurrencyCode: "TRY",
+	}
+	o.mockOrderService.AssertCalled(o.T(), "CreateOrder", createOrderRequest)
+	o.mockOrderService.AssertNumberOfCalls(o.T(), "CreateOrder", 1)
+}
+
+func (o *OrderControllerSuite) TestCreateOrderWithSuite_WhenRequestIsNotValid_ReturnsBadRequest() {
+	//Given
+	//When
+	o.sendRequest("POST", "/orders", nil)
+
+	//Then
+	assert.Equal(o.T(), http.StatusBadRequest, o.recorder.Code)
+	assert.Equal(o.T(), constants.CreateOrderRequestIsNotValid, o.readError().Message)
+	o.mockOrderService.AssertNumberOfCalls(o.T(), "CreateOrder", 0)
+}
+
+func (o *OrderControllerSuite) TestCreateOrderWithSuite_WhenOrderNumberIsNotValid_ReturnsBadRequest() {
+	//Given
+	o.mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+	serviceReq.OrderNumber = ""
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	o.sendRequest("POST", "/orders", reqBodyBytes)
+
+	//Then
+	assert.Equal(o.T(), http.StatusBadRequest, o.recorder.Code)
+	assert.Equal(o.T(), constants.OrderNumberIsNotValid, o.readError().Message)
+	o.mockOrderService.AssertNumberOfCalls(o.T(), "CreateOrder", 0)
+}
+
+func (o *OrderControllerSuite) TestCreateOrderWithSuite_WhenFirstNameIsNotValid_ReturnsBadRequest() {
+	//Given
+	o.mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+	serviceReq.FirstName = ""
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	o.sendRequest("POST", "/orders", reqBodyBytes)
+
+	//Then
+	assert.Equal(o.T(), http.StatusBadRequest, o.recorder.Code)
+	assert.Equal(o.T(), constants.FirstNameIsNotValid, o.readError().Message)
+	o.mockOrderService.AssertNumberOfCalls(o.T(), "CreateOrder", 0)
+}
+
+func (o *OrderControllerSuite) TestCreateOrderWithSuite_WhenLastNameIsNotValid_ReturnsBadRequest() {
+	//Given
+	o.mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+	serviceReq.LastName = ""
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	o.sendRequest("POST", "/orders", reqBodyBytes)
+
+	//Then
+	assert.Equal(o.T(), http.StatusBadRequest, o.recorder.Code)
+	assert.Equal(o.T(), constants.LastNameIsNotValid, o.readError().Message)
+	o.mockOrderService.AssertNumberOfCalls(o.T(), "CreateOrder", 0)
+}
+
+func (o *OrderControllerSuite) TestCreateOrderWithSuite_WhenTotalAmountIsNotValid_ReturnsBadRequest() {
+	//Given
+	o.mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+	serviceReq.TotalAmount = -12.13
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	o.sendRequest("POST", "/orders", reqBodyBytes)
+
+	//Then
+	assert.Equal(o.T(), http.StatusBadRequest, o.recorder.Code)
+	assert.Equal(o.T(), constants.TotalAmountIsNotValid, o.readError().Message)
+	o.mockOrderService.AssertNumberOfCalls(o.T(), "CreateOrder", 0)
+}
+
+func (o *OrderControllerSuite) TestCreateOrderWithSuite_WhenAddressIsNotValid_ReturnsBadRequest() {
+	//Given
+	o.mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+	serviceReq.Address = ""
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	o.sendRequest("POST", "/orders", reqBodyBytes)
+
+	//Then
+	assert.Equal(o.T(), http.StatusBadRequest, o.recorder.Code)
+	assert.Equal(o.T(), constants.AddressIsNotValid, o.readError().Message)
+	o.mockOrderService.AssertNumberOfCalls(o.T(), "CreateOrder", 0)
+}
+
+func (o *OrderControllerSuite) TestCreateOrderWithSuite_WhenCityIsNotValid_ReturnsBadRequest() {
+	//Given
+	o.mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+	serviceReq.City = ""
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	o.sendRequest("POST", "/orders", reqBodyBytes)
+
+	//Then
+	assert.Equal(o.T(), http.StatusBadRequest, o.recorder.Code)
+	assert.Equal(o.T(), constants.CityIsNotValid, o.readError().Message)
+	o.mockOrderService.AssertNumberOfCalls(o.T(), "CreateOrder", 0)
+}
+
+func (o *OrderControllerSuite) TestCreateOrderWithSuite_WhenDistrictIsNotValid_ReturnsBadRequest() {
+	//Given
+	o.mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+	serviceReq.District = ""
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	o.sendRequest("POST", "/orders", reqBodyBytes)
+
+	//Then
+	assert.Equal(o.T(), http.StatusBadRequest, o.recorder.Code)
+	assert.Equal(o.T(), constants.DistrictIsNotValid, o.readError().Message)
+	o.mockOrderService.AssertNumberOfCalls(o.T(), "CreateOrder", 0)
+}
+
+func (o *OrderControllerSuite) TestCreateOrderWithSuite_WhenCurrencyCodeIsNotValid_ReturnsBadRequest() {
+	//Given
+	o.mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+	serviceReq.CurrencyCode = ""
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	o.sendRequest("POST", "/orders", reqBodyBytes)
+
+	//Then
+	assert.Equal(o.T(), http.StatusBadRequest, o.recorder.Code)
+	assert.Equal(o.T(), constants.CurrencyCodeIsNotValid, o.readError().Message)
+	o.mockOrderService.AssertNumberOfCalls(o.T(), "CreateOrder", 0)
+}
+
+func (o *OrderControllerSuite) TestCreateOrderWithSuite_WhenOrderServiceReturnsError_returnsError() {
+	//Given
+	serviceErr := response.NewErrorBuilder().
+		SetError(http.StatusConflict, "notFound").
+		Build()
+	o.mockOrderService.On("CreateOrder", mock.Anything).Return(&serviceErr)
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	o.sendRequest("POST", "/orders", reqBodyBytes)
+
+	//Then
+	assert.Equal(o.T(), http.StatusConflict, o.recorder.Code)
 	assert.Equal(o.T(), serviceErr, o.readError())
 }
 

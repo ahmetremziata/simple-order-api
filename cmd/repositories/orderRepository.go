@@ -1,12 +1,15 @@
 package repositories
 
 import (
+	enum "simple-order-api/cmd/enums"
+	"simple-order-api/cmd/models/request"
 	"simple-order-api/cmd/models/response"
 )
 
 type OrderRepository interface {
 	FetchOrders() ([]response.Order, *response.ErrorResponse)
 	FetchOrderByOrderNumber(orderNumber string) (*response.Order, *response.ErrorResponse)
+	CreateOrder(createOrderRequest request.CreateOrderRequest) *response.ErrorResponse
 	DeleteOrder(orderNumber string) *response.ErrorResponse
 }
 
@@ -26,6 +29,22 @@ func (o OrderRepositoryImp) FetchOrderByOrderNumber(orderNumber string) (*respon
 	}
 
 	return nil, nil
+}
+
+func (o OrderRepositoryImp) CreateOrder(createOrderRequest request.CreateOrderRequest) *response.ErrorResponse {
+	orders, _ := o.FetchOrders()
+	orders = append(orders, response.Order{
+		OrderNumber:  createOrderRequest.OrderNumber,
+		FirstName:    createOrderRequest.FirstName,
+		LastName:     createOrderRequest.LastName,
+		TotalAmount:  createOrderRequest.TotalAmount,
+		Address:      createOrderRequest.Address,
+		City:         createOrderRequest.City,
+		District:     createOrderRequest.District,
+		CurrencyCode: createOrderRequest.CurrencyCode,
+		StatusId:     int(enum.Created),
+	})
+	return nil
 }
 
 func (o OrderRepositoryImp) DeleteOrder(_ string) *response.ErrorResponse {

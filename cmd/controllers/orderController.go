@@ -2,11 +2,14 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 	"net/http"
 	"simple-order-api/cmd/constants"
 	"simple-order-api/cmd/helpers"
+	"simple-order-api/cmd/models/request"
 	"simple-order-api/cmd/models/response"
 	"simple-order-api/cmd/services"
+	"strings"
 )
 
 type OrderController struct {
@@ -50,7 +53,7 @@ func (controller *OrderController) GetOrders() func(context *gin.Context) {
 // @Param orderNumber path string true "orderNumber"
 func (controller *OrderController) GetOrderByOrderNumber() func(context *gin.Context) {
 	return func(context *gin.Context) {
-		orderNumber, orderNumberErr := GetStringParam(context, constants.OrderNumber)
+		orderNumber, orderNumberErr := getStringParam(context, constants.OrderNumber)
 		if !helpers.IsValidString(orderNumber, orderNumberErr) {
 			errorResponse := response.NewErrorBuilder().
 				SetError(http.StatusBadRequest, constants.OrderNumberIsNotValid).
@@ -78,6 +81,102 @@ func (controller *OrderController) GetOrderByOrderNumber() func(context *gin.Con
 }
 
 // @Tags OrderController
+// @Description Create Order
+// @Produce json
+// @Success 201
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 409 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /orders [post]
+// @Param request body request.CreateOrderRequest true "Create Order Request"
+func (controller *OrderController) CreateOrder() func(context *gin.Context) {
+	return func(context *gin.Context) {
+		var createOrderRequest *request.CreateOrderRequest
+		_ = mapstructure.Decode(getRequestBody(createOrderRequest, context), &createOrderRequest)
+
+		if createOrderRequest == nil {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.CreateOrderRequestIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if len(strings.TrimSpace(createOrderRequest.OrderNumber)) == 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.OrderNumberIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if len(strings.TrimSpace(createOrderRequest.FirstName)) == 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.FirstNameIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if len(strings.TrimSpace(createOrderRequest.LastName)) == 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.LastNameIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if createOrderRequest.TotalAmount <= 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.TotalAmountIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if len(strings.TrimSpace(createOrderRequest.Address)) == 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.AddressIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if len(strings.TrimSpace(createOrderRequest.City)) == 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.CityIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if len(strings.TrimSpace(createOrderRequest.District)) == 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.DistrictIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if len(strings.TrimSpace(createOrderRequest.CurrencyCode)) == 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.CurrencyCodeIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		createErr := controller.orderService.CreateOrder(*createOrderRequest)
+		if createErr != nil {
+			context.JSON(createErr.StatusCode, createErr)
+			return
+		}
+
+		context.JSON(http.StatusCreated, "")
+	}
+}
+
+// @Tags OrderController
 // @Description Delete Order
 // @Produce json
 // @Success 204
@@ -88,7 +187,7 @@ func (controller *OrderController) GetOrderByOrderNumber() func(context *gin.Con
 // @Param orderNumber path string true "orderNumber"
 func (controller *OrderController) DeleteOrder() func(context *gin.Context) {
 	return func(context *gin.Context) {
-		orderNumber, orderNumberErr := GetStringParam(context, constants.OrderNumber)
+		orderNumber, orderNumberErr := getStringParam(context, constants.OrderNumber)
 		if !helpers.IsValidString(orderNumber, orderNumberErr) {
 			errorResponse := response.NewErrorBuilder().
 				SetError(http.StatusBadRequest, constants.OrderNumberIsNotValid).
@@ -110,5 +209,6 @@ func (controller *OrderController) DeleteOrder() func(context *gin.Context) {
 func (controller *OrderController) Register(engine *gin.Engine) {
 	engine.GET("/orders", controller.GetOrders())
 	engine.GET("/orders/:orderNumber", controller.GetOrderByOrderNumber())
+	engine.POST("/orders", controller.CreateOrder())
 	engine.DELETE("/orders/:orderNumber", controller.DeleteOrder())
 }

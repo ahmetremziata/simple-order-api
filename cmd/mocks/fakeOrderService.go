@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"github.com/stretchr/testify/mock"
+	"simple-order-api/cmd/models/request"
 	"simple-order-api/cmd/models/response"
 )
 
@@ -29,6 +30,15 @@ func (service *FakeOrderService) GetOrder(orderNumber string) (*response.Order, 
 	}
 
 	return nil, result.Get(1).(*response.ErrorResponse)
+}
+
+func (service *FakeOrderService) CreateOrder(createOrderRequest request.CreateOrderRequest) *response.ErrorResponse {
+	result := service.Called(createOrderRequest)
+	if result.Get(0) != nil {
+		return result.Get(0).(*response.ErrorResponse)
+	}
+
+	return nil
 }
 
 func (service *FakeOrderService) DeleteOrder(orderNumber string) *response.ErrorResponse {

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -8,6 +9,7 @@ import (
 	"simple-order-api/cmd/constants"
 	enum "simple-order-api/cmd/enums"
 	"simple-order-api/cmd/mocks"
+	"simple-order-api/cmd/models/request"
 	"simple-order-api/cmd/models/response"
 	"testing"
 )
@@ -96,6 +98,98 @@ func TestGetOrder_WhenOrderRepositoryReturnsError_ReturnsError(t *testing.T) {
 	//Then
 	assert.NotNil(t, err)
 	assert.Nil(t, resp)
+	assert.Equal(t, &serviceErr, err)
+}
+
+func TestCreateOrder(t *testing.T) {
+	//Given
+	orderNumber := "1"
+	mockOrderRepository := &mocks.FakeOrderRepository{}
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+
+	mockOrderRepository.On("FetchOrderByOrderNumber", mock.Anything).Return(nil, nil)
+	mockOrderRepository.On("CreateOrder", mock.Anything).Return(nil)
+	service := NewOrderService(mockOrderRepository)
+
+	//When
+	err := service.CreateOrder(*serviceReq)
+
+	//Then
+	assert.Nil(t, err)
+	mockOrderRepository.AssertNumberOfCalls(t, "FetchOrderByOrderNumber", 1)
+	mockOrderRepository.AssertCalled(t, "FetchOrderByOrderNumber", orderNumber)
+	mockOrderRepository.AssertNumberOfCalls(t, "CreateOrder", 1)
+	mockOrderRepository.AssertCalled(t, "CreateOrder", *serviceReq)
+}
+
+func TestCreateOrder_WhenOrderRepositoryGetMethodReturnsError_ReturnsError(t *testing.T) {
+	//Given
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+	mockOrderRepository := &mocks.FakeOrderRepository{}
+	serviceErr := response.NewErrorBuilder().
+		SetError(http.StatusInternalServerError, "test").
+		Build()
+
+	mockOrderRepository.On("FetchOrderByOrderNumber", mock.Anything).Return(nil, &serviceErr)
+	service := NewOrderService(mockOrderRepository)
+
+	//When
+	err := service.CreateOrder(*serviceReq)
+
+	//Then
+	assert.NotNil(t, err)
+	assert.Equal(t, &serviceErr, err)
+}
+
+func TestCreateOrder_WhenOrderAlreadyExistWithSameOrderNumber_ReturnsStatusConflict(t *testing.T) {
+	//Given
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+	mockOrderRepository := &mocks.FakeOrderRepository{}
+	order := response.Order{
+		OrderNumber:  "1",
+		FirstName:    "Ahmet",
+		LastName:     "Ata",
+		TotalAmount:  121.13,
+		Address:      "Lorem ipsum dolor sit amet",
+		City:         "İstanbul",
+		District:     "Silivri",
+		StatusId:     int(enum.Created),
+		CurrencyCode: "TR",
+	}
+
+	mockOrderRepository.On("FetchOrderByOrderNumber", mock.Anything).Return(&order, nil)
+	service := NewOrderService(mockOrderRepository)
+
+	//When
+	err := service.CreateOrder(*serviceReq)
+
+	//Then
+	assert.NotNil(t, err)
+	assert.Equal(t, http.StatusConflict, err.StatusCode)
+	assert.Equal(t, constants.SameOrderFoundByUniqueId, err.Message)
+}
+
+func TestCreateOrder_WhenOrderRepositoryDeleteMethodReturnsError_ReturnsError(t *testing.T) {
+	//Given
+	mockOrderRepository := &mocks.FakeOrderRepository{}
+	serviceReq := &request.CreateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+
+	mockOrderRepository.On("FetchOrderByOrderNumber", mock.Anything).Return(nil, nil)
+	serviceErr := response.NewErrorBuilder().
+		SetError(http.StatusInternalServerError, "test").
+		Build()
+	mockOrderRepository.On("CreateOrder", mock.Anything).Return(&serviceErr)
+	service := NewOrderService(mockOrderRepository)
+
+	//When
+	err := service.CreateOrder(*serviceReq)
+
+	//Then
+	assert.NotNil(t, err)
 	assert.Equal(t, &serviceErr, err)
 }
 
@@ -232,4 +326,17 @@ func TestDeleteOrder_WhenOrderRepositoryDeleteMethodReturnsError_ReturnsError(t 
 	//Then
 	assert.NotNil(t, err)
 	assert.Equal(t, &serviceErr, err)
+}
+
+func getCreateOrderRequest() string {
+	return `{
+  "orderNumber": "1",
+  "firstName": "Test",
+  "lastName": "Sample",
+  "totalAmount": 10.2,
+  "address": "address",
+  "city": "İstanbul",
+  "district": "Bakırköy",
+  "currencyCode": "TRY"
+}`
 }
