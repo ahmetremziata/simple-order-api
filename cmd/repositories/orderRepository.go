@@ -6,6 +6,7 @@ import (
 	"simple-order-api/cmd/models/response"
 )
 
+//go:generate mockery --name=OrderRepository --structname=MockOrderRepository --output=../mocks --filename=fakeOrderRepositoryWithMockery.go
 type OrderRepository interface {
 	FetchOrders() ([]response.Order, *response.ErrorResponse)
 	FetchOrderByOrderNumber(orderNumber string) (*response.Order, *response.ErrorResponse)

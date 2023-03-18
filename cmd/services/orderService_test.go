@@ -16,7 +16,7 @@ import (
 
 func TestGetOrders(t *testing.T) {
 	//Given
-	mockOrderRepository := &mocks.FakeOrderRepository{}
+	mockOrderRepository := &mocks.MockOrderRepository{}
 	orders := []response.Order{
 		{
 			OrderNumber:  "1",
@@ -46,7 +46,7 @@ func TestGetOrders(t *testing.T) {
 
 func TestGetOrders_WhenOrderRepositoryReturnsError_ReturnsError(t *testing.T) {
 	//Given
-	mockOrderRepository := &mocks.FakeOrderRepository{}
+	mockOrderRepository := &mocks.MockOrderRepository{}
 	serviceErr := response.NewErrorBuilder().
 		SetError(http.StatusInternalServerError, "test").
 		Build()
@@ -65,7 +65,7 @@ func TestGetOrders_WhenOrderRepositoryReturnsError_ReturnsError(t *testing.T) {
 func TestGetOrder(t *testing.T) {
 	//Given
 	orderNumber := "1"
-	mockOrderRepository := &mocks.FakeOrderRepository{}
+	mockOrderRepository := &mocks.MockOrderRepository{}
 	order := response.Order{}
 
 	mockOrderRepository.On("FetchOrderByOrderNumber", mock.Anything).Return(&order, nil)
@@ -85,7 +85,7 @@ func TestGetOrder(t *testing.T) {
 func TestGetOrder_WhenOrderRepositoryReturnsError_ReturnsError(t *testing.T) {
 	//Given
 	orderNumber := "1"
-	mockOrderRepository := &mocks.FakeOrderRepository{}
+	mockOrderRepository := &mocks.MockOrderRepository{}
 	serviceErr := response.NewErrorBuilder().
 		SetError(http.StatusInternalServerError, "test").
 		Build()
@@ -104,7 +104,7 @@ func TestGetOrder_WhenOrderRepositoryReturnsError_ReturnsError(t *testing.T) {
 func TestCreateOrder(t *testing.T) {
 	//Given
 	orderNumber := "1"
-	mockOrderRepository := &mocks.FakeOrderRepository{}
+	mockOrderRepository := &mocks.MockOrderRepository{}
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
 
@@ -127,7 +127,7 @@ func TestCreateOrder_WhenOrderRepositoryGetMethodReturnsError_ReturnsError(t *te
 	//Given
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
-	mockOrderRepository := &mocks.FakeOrderRepository{}
+	mockOrderRepository := &mocks.MockOrderRepository{}
 	serviceErr := response.NewErrorBuilder().
 		SetError(http.StatusInternalServerError, "test").
 		Build()
@@ -147,7 +147,7 @@ func TestCreateOrder_WhenOrderAlreadyExistWithSameOrderNumber_ReturnsStatusConfl
 	//Given
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
-	mockOrderRepository := &mocks.FakeOrderRepository{}
+	mockOrderRepository := &mocks.MockOrderRepository{}
 	order := response.Order{
 		OrderNumber:  "1",
 		FirstName:    "Ahmet",
@@ -174,7 +174,7 @@ func TestCreateOrder_WhenOrderAlreadyExistWithSameOrderNumber_ReturnsStatusConfl
 
 func TestCreateOrder_WhenOrderRepositoryDeleteMethodReturnsError_ReturnsError(t *testing.T) {
 	//Given
-	mockOrderRepository := &mocks.FakeOrderRepository{}
+	mockOrderRepository := &mocks.MockOrderRepository{}
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
 
@@ -196,7 +196,7 @@ func TestCreateOrder_WhenOrderRepositoryDeleteMethodReturnsError_ReturnsError(t 
 func TestDeleteOrder(t *testing.T) {
 	//Given
 	orderNumber := "1"
-	mockOrderRepository := &mocks.FakeOrderRepository{}
+	mockOrderRepository := &mocks.MockOrderRepository{}
 	order := response.Order{
 		OrderNumber:  "1",
 		FirstName:    "Ahmet",
@@ -227,7 +227,7 @@ func TestDeleteOrder(t *testing.T) {
 func TestDeleteOrder_WhenOrderRepositoryGetMethodReturnsError_ReturnsError(t *testing.T) {
 	//Given
 	orderNumber := "1"
-	mockOrderRepository := &mocks.FakeOrderRepository{}
+	mockOrderRepository := &mocks.MockOrderRepository{}
 	serviceErr := response.NewErrorBuilder().
 		SetError(http.StatusInternalServerError, "test").
 		Build()
@@ -246,7 +246,7 @@ func TestDeleteOrder_WhenOrderRepositoryGetMethodReturnsError_ReturnsError(t *te
 func TestDeleteOrder_WhenOrderNotFoundInRepository_ReturnsError(t *testing.T) {
 	//Given
 	orderNumber := "1"
-	mockOrderRepository := &mocks.FakeOrderRepository{}
+	mockOrderRepository := &mocks.MockOrderRepository{}
 
 	mockOrderRepository.On("FetchOrderByOrderNumber", mock.Anything).Return(nil, nil)
 	service := NewOrderService(mockOrderRepository)
@@ -264,7 +264,7 @@ func TestDeleteOrder_WhenStatusIsNotValidForDeletion_ReturnsError(t *testing.T) 
 	for _, statusId := range statusIdsThatNotBeValidForDeletion {
 		t.Run(fmt.Sprintf("StatusId:%d", statusId), func(t *testing.T) {
 			orderNumber := "1"
-			mockOrderRepository := &mocks.FakeOrderRepository{}
+			mockOrderRepository := &mocks.MockOrderRepository{}
 			order := response.Order{
 				OrderNumber:  "1",
 				FirstName:    "Ahmet",
@@ -300,7 +300,7 @@ var statusIdsThatNotBeValidForDeletion = []int{
 func TestDeleteOrder_WhenOrderRepositoryDeleteMethodReturnsError_ReturnsError(t *testing.T) {
 	//Given
 	orderNumber := "1"
-	mockOrderRepository := &mocks.FakeOrderRepository{}
+	mockOrderRepository := &mocks.MockOrderRepository{}
 	order := response.Order{
 		OrderNumber:  "1",
 		FirstName:    "Ahmet",

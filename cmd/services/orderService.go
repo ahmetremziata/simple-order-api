@@ -9,6 +9,7 @@ import (
 	"simple-order-api/cmd/repositories"
 )
 
+//go:generate mockery --name=OrderService --structname=MockOrderService --output=../mocks --filename=fakeOrderServiceWithMockery.go
 type OrderService interface {
 	GetOrders() ([]response.Order, *response.ErrorResponse)
 	GetOrder(orderNumber string) (*response.Order, *response.ErrorResponse)

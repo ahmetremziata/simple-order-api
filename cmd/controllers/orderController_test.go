@@ -18,7 +18,7 @@ import (
 func TestGetOrders(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	orders := []response.Order{
 		{
 			OrderNumber:  "1",
@@ -54,7 +54,7 @@ func TestGetOrders(t *testing.T) {
 func TestGetOrders_WhenServiceReturnsError_ReturnsInternalServerError(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	serviceErr := response.NewErrorBuilder().
 		SetError(http.StatusInternalServerError, "test").
 		Build()
@@ -78,7 +78,7 @@ func TestGetOrders_WhenServiceReturnsError_ReturnsInternalServerError(t *testing
 func TestGetOrderByOrderNumber(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	order := response.Order{
 
 		OrderNumber:  "1",
@@ -113,7 +113,7 @@ func TestGetOrderByOrderNumber(t *testing.T) {
 func TestGetOrderByOrderNumber_WhenOrderNumberIsInvalid_returnsBadRequestError(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	controller := NewOrderController(mockOrderService)
 	controller.Register(engine)
 	w := httptest.NewRecorder()
@@ -133,7 +133,7 @@ func TestGetOrderByOrderNumber_WhenOrderNumberIsInvalid_returnsBadRequestError(t
 func TestGetOrderByOrderNumber_WhenOrderNotFound_returnsNotFoundError(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	mockOrderService.On("GetOrder", mock.Anything).Return(nil, nil)
 	controller := NewOrderController(mockOrderService)
 	controller.Register(engine)
@@ -153,7 +153,7 @@ func TestGetOrderByOrderNumber_WhenOrderNotFound_returnsNotFoundError(t *testing
 func TestGetOrderByOrderNumber_WhenOrderServiceReturnsError_returnsInternalServerError(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	serviceErr := response.NewErrorBuilder().
 		SetError(http.StatusInternalServerError, "test").
 		Build()
@@ -176,7 +176,7 @@ func TestGetOrderByOrderNumber_WhenOrderServiceReturnsError_returnsInternalServe
 func TestCreateOrder(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
@@ -209,7 +209,7 @@ func TestCreateOrder(t *testing.T) {
 func TestCreateOrder_WhenRequestIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	controller := NewOrderController(mockOrderService)
 	controller.Register(engine)
@@ -230,7 +230,7 @@ func TestCreateOrder_WhenRequestIsNotValid_ReturnsBadRequest(t *testing.T) {
 func TestCreateOrder_WhenOrderNumberIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
@@ -256,7 +256,7 @@ func TestCreateOrder_WhenOrderNumberIsNotValid_ReturnsBadRequest(t *testing.T) {
 func TestCreateOrder_WhenFirstNameIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
@@ -282,7 +282,7 @@ func TestCreateOrder_WhenFirstNameIsNotValid_ReturnsBadRequest(t *testing.T) {
 func TestCreateOrder_WhenLastNameIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
@@ -308,7 +308,7 @@ func TestCreateOrder_WhenLastNameIsNotValid_ReturnsBadRequest(t *testing.T) {
 func TestCreateOrder_WhenTotalAmountIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
@@ -334,7 +334,7 @@ func TestCreateOrder_WhenTotalAmountIsNotValid_ReturnsBadRequest(t *testing.T) {
 func TestCreateOrder_WhenAddressIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
@@ -360,7 +360,7 @@ func TestCreateOrder_WhenAddressIsNotValid_ReturnsBadRequest(t *testing.T) {
 func TestCreateOrder_WhenCityIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
@@ -386,7 +386,7 @@ func TestCreateOrder_WhenCityIsNotValid_ReturnsBadRequest(t *testing.T) {
 func TestCreateOrder_WhenDistrictIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
@@ -412,7 +412,7 @@ func TestCreateOrder_WhenDistrictIsNotValid_ReturnsBadRequest(t *testing.T) {
 func TestCreateOrder_WhenCurrencyCodeIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
@@ -438,7 +438,7 @@ func TestCreateOrder_WhenCurrencyCodeIsNotValid_ReturnsBadRequest(t *testing.T) 
 func TestCreateOrder_WhenOrderServiceReturnsError_returnsInternalServerError(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	serviceErr := response.NewErrorBuilder().
 		SetError(http.StatusInternalServerError, "test").
 		Build()
@@ -465,7 +465,7 @@ func TestCreateOrder_WhenOrderServiceReturnsError_returnsInternalServerError(t *
 func TestDeleteOrder(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	mockOrderService.On("DeleteOrder", mock.Anything).Return(nil)
 	controller := NewOrderController(mockOrderService)
 	controller.Register(engine)
@@ -484,7 +484,7 @@ func TestDeleteOrder(t *testing.T) {
 func TestDeleteOrder_WhenOrderNumberIsInvalid_returnsBadRequestError(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	controller := NewOrderController(mockOrderService)
 	controller.Register(engine)
 	w := httptest.NewRecorder()
@@ -504,7 +504,7 @@ func TestDeleteOrder_WhenOrderNumberIsInvalid_returnsBadRequestError(t *testing.
 func TestDeleteOrder_WhenOrderServiceReturnsError_returnsInternalServerError(t *testing.T) {
 	//Given
 	engine := gin.New()
-	mockOrderService := &mocks.FakeOrderService{}
+	mockOrderService := &mocks.MockOrderService{}
 	serviceErr := response.NewErrorBuilder().
 		SetError(http.StatusInternalServerError, "test").
 		Build()
