@@ -1,6 +1,8 @@
 definitions:
   request.CreateOrderRequest:
     properties:
+      address:
+        type: string
       city:
         type: string
       currencyCode:
@@ -13,7 +15,22 @@ definitions:
         type: string
       orderNumber:
         type: string
-      string:
+      totalAmount:
+        type: number
+    type: object
+  request.UpdateOrderRequest:
+    properties:
+      address:
+        type: string
+      city:
+        type: string
+      currencyCode:
+        type: string
+      district:
+        type: string
+      firstName:
+        type: string
+      lastName:
         type: string
       totalAmount:
         type: number
@@ -148,6 +165,39 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.Order'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      tags:
+      - OrderController
+    put:
+      description: Update Order
+      parameters:
+      - description: orderNumber
+        in: path
+        name: orderNumber
+        required: true
+        type: string
+      - description: Update Order Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
         "400":
           description: Bad Request
           schema:

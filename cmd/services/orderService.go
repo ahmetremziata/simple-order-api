@@ -13,8 +13,9 @@ import (
 type OrderService interface {
 	GetOrders() ([]response.Order, *response.ErrorResponse)
 	GetOrder(orderNumber string) (*response.Order, *response.ErrorResponse)
-	DeleteOrder(orderNumber string) *response.ErrorResponse
 	CreateOrder(createOrderRequest request.CreateOrderRequest) *response.ErrorResponse
+	UpdateOrder(orderNumber string, updateOrderRequest request.UpdateOrderRequest) *response.ErrorResponse
+	DeleteOrder(orderNumber string) *response.ErrorResponse
 }
 
 type OrderServiceImp struct {
@@ -44,6 +45,31 @@ func (o OrderServiceImp) CreateOrder(createOrderRequest request.CreateOrderReque
 	}
 
 	return o.orderRepository.CreateOrder(createOrderRequest)
+}
+
+func (o OrderServiceImp) UpdateOrder(orderNumber string, updateOrderRequest request.UpdateOrderRequest) *response.ErrorResponse {
+	order, errorResp := o.GetOrder(orderNumber)
+	if errorResp != nil {
+		return errorResp
+	}
+
+	if order == nil {
+		errorResp := response.NewErrorBuilder().
+			SetError(http.StatusNotFound, constants.OrderNotFoundByOrderNumber).
+			Build()
+		return &errorResp
+	}
+
+	if order.StatusId == int(enum.Transferred) ||
+		order.StatusId == int(enum.Shipped) ||
+		order.StatusId == int(enum.Delivered) {
+		errorResp := response.NewErrorBuilder().
+			SetError(http.StatusInternalServerError, constants.OrderChangeNotPermittedBecauseOfStatus).
+			Build()
+		return &errorResp
+	}
+
+	return o.orderRepository.UpdateOrder(orderNumber, updateOrderRequest)
 }
 
 func (o OrderServiceImp) DeleteOrder(orderNumber string) *response.ErrorResponse {

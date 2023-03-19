@@ -97,6 +97,22 @@ func (_m *MockOrderRepository) FetchOrders() ([]response.Order, *response.ErrorR
 	return r0, r1
 }
 
+// UpdateOrder provides a mock function with given fields: orderNumber, updateOrderRequest
+func (_m *MockOrderRepository) UpdateOrder(orderNumber string, updateOrderRequest request.UpdateOrderRequest) *response.ErrorResponse {
+	ret := _m.Called(orderNumber, updateOrderRequest)
+
+	var r0 *response.ErrorResponse
+	if rf, ok := ret.Get(0).(func(string, request.UpdateOrderRequest) *response.ErrorResponse); ok {
+		r0 = rf(orderNumber, updateOrderRequest)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*response.ErrorResponse)
+		}
+	}
+
+	return r0
+}
+
 type mockConstructorTestingTNewMockOrderRepository interface {
 	mock.TestingT
 	Cleanup(func())

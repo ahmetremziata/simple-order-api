@@ -41,6 +41,15 @@ func (service *FakeOrderService) CreateOrder(createOrderRequest request.CreateOr
 	return nil
 }
 
+func (service *FakeOrderService) UpdateOrder(orderNumber string, updateOrderRequest request.UpdateOrderRequest) *response.ErrorResponse {
+	result := service.Called(orderNumber, updateOrderRequest)
+	if result.Get(0) != nil {
+		return result.Get(0).(*response.ErrorResponse)
+	}
+
+	return nil
+}
+
 func (service *FakeOrderService) DeleteOrder(orderNumber string) *response.ErrorResponse {
 	result := service.Called(orderNumber)
 	if result.Get(0) != nil {

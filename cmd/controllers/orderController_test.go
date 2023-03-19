@@ -210,7 +210,6 @@ func TestCreateOrder_WhenRequestIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
 	mockOrderService := &mocks.MockOrderService{}
-	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	controller := NewOrderController(mockOrderService)
 	controller.Register(engine)
 	w := httptest.NewRecorder()
@@ -231,7 +230,6 @@ func TestCreateOrder_WhenOrderNumberIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
 	mockOrderService := &mocks.MockOrderService{}
-	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
 	serviceReq.OrderNumber = ""
@@ -257,7 +255,6 @@ func TestCreateOrder_WhenFirstNameIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
 	mockOrderService := &mocks.MockOrderService{}
-	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
 	serviceReq.FirstName = ""
@@ -283,7 +280,6 @@ func TestCreateOrder_WhenLastNameIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
 	mockOrderService := &mocks.MockOrderService{}
-	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
 	serviceReq.LastName = ""
@@ -309,7 +305,6 @@ func TestCreateOrder_WhenTotalAmountIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
 	mockOrderService := &mocks.MockOrderService{}
-	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
 	serviceReq.TotalAmount = 0
@@ -335,7 +330,6 @@ func TestCreateOrder_WhenAddressIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
 	mockOrderService := &mocks.MockOrderService{}
-	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
 	serviceReq.Address = ""
@@ -361,7 +355,6 @@ func TestCreateOrder_WhenCityIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
 	mockOrderService := &mocks.MockOrderService{}
-	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
 	serviceReq.City = ""
@@ -387,7 +380,6 @@ func TestCreateOrder_WhenDistrictIsNotValid_ReturnsBadRequest(t *testing.T) {
 	//Given
 	engine := gin.New()
 	mockOrderService := &mocks.MockOrderService{}
-	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
 	serviceReq.District = ""
@@ -413,7 +405,6 @@ func TestCreateOrder_WhenCurrencyCodeIsNotValid_ReturnsBadRequest(t *testing.T) 
 	//Given
 	engine := gin.New()
 	mockOrderService := &mocks.MockOrderService{}
-	mockOrderService.On("CreateOrder", mock.Anything).Return(nil)
 	serviceReq := &request.CreateOrderRequest{}
 	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
 	serviceReq.CurrencyCode = ""
@@ -453,6 +444,285 @@ func TestCreateOrder_WhenOrderServiceReturnsError_returnsInternalServerError(t *
 
 	//When
 	req, _ := http.NewRequest("POST", "/orders", reqBodyBytes)
+	engine.ServeHTTP(w, req)
+
+	//Then
+	errResponse := response.ErrorResponse{}
+	_ = json.Unmarshal(w.Body.Bytes(), &errResponse)
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	assert.Equal(t, errResponse, serviceErr)
+}
+
+func TestUpdateOrder(t *testing.T) {
+	//Given
+	engine := gin.New()
+	mockOrderService := &mocks.MockOrderService{}
+	mockOrderService.On("UpdateOrder", mock.Anything, mock.Anything).Return(nil)
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+	controller := NewOrderController(mockOrderService)
+	controller.Register(engine)
+	w := httptest.NewRecorder()
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	req, _ := http.NewRequest("PUT", "/orders/123456", reqBodyBytes)
+	engine.ServeHTTP(w, req)
+
+	//Then
+	assert.Equal(t, http.StatusNoContent, w.Code)
+	var updateOrderRequest = request.UpdateOrderRequest{
+		FirstName:    "Test",
+		LastName:     "Sample",
+		TotalAmount:  10.2,
+		Address:      "address",
+		City:         "İstanbul",
+		District:     "Bakırköy",
+		CurrencyCode: "TRY",
+	}
+	mockOrderService.AssertCalled(t, "UpdateOrder", "123456", updateOrderRequest)
+	mockOrderService.AssertNumberOfCalls(t, "UpdateOrder", 1)
+}
+
+func TestUpdateOrder_WhenRequestIsNotValid_ReturnsBadRequest(t *testing.T) {
+	//Given
+	engine := gin.New()
+	mockOrderService := &mocks.MockOrderService{}
+	controller := NewOrderController(mockOrderService)
+	controller.Register(engine)
+	w := httptest.NewRecorder()
+
+	//When
+	req, _ := http.NewRequest("PUT", "/orders/123456", nil)
+	engine.ServeHTTP(w, req)
+
+	//Then
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	errResponse := response.ErrorResponse{}
+	_ = json.Unmarshal(w.Body.Bytes(), &errResponse)
+	assert.Equal(t, constants.UpdateOrderRequestIsNotValid, errResponse.Message)
+	mockOrderService.AssertNumberOfCalls(t, "UpdateOrder", 0)
+}
+
+func TestUpdateOrder_WhenOrderNumberIsNotValid_ReturnsBadRequest(t *testing.T) {
+	//Given
+	engine := gin.New()
+	mockOrderService := &mocks.MockOrderService{}
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+	controller := NewOrderController(mockOrderService)
+	controller.Register(engine)
+	w := httptest.NewRecorder()
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	req, _ := http.NewRequest("PUT", "/orders/%20", reqBodyBytes)
+	engine.ServeHTTP(w, req)
+
+	//Then
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	errResponse := response.ErrorResponse{}
+	_ = json.Unmarshal(w.Body.Bytes(), &errResponse)
+	assert.Equal(t, constants.OrderNumberIsNotValid, errResponse.Message)
+	mockOrderService.AssertNumberOfCalls(t, "UpdateOrder", 0)
+}
+
+func TestUpdateOrder_WhenFirstNameIsNotValid_ReturnsBadRequest(t *testing.T) {
+	//Given
+	engine := gin.New()
+	mockOrderService := &mocks.MockOrderService{}
+	mockOrderService.On("UpdateOrder", mock.Anything).Return(nil)
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+	serviceReq.FirstName = ""
+	controller := NewOrderController(mockOrderService)
+	controller.Register(engine)
+	w := httptest.NewRecorder()
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	req, _ := http.NewRequest("PUT", "/orders/123456", reqBodyBytes)
+	engine.ServeHTTP(w, req)
+
+	//Then
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	errResponse := response.ErrorResponse{}
+	_ = json.Unmarshal(w.Body.Bytes(), &errResponse)
+	assert.Equal(t, constants.FirstNameIsNotValid, errResponse.Message)
+	mockOrderService.AssertNumberOfCalls(t, "UpdateOrder", 0)
+}
+
+func TestUpdateOrder_WhenLastNameIsNotValid_ReturnsBadRequest(t *testing.T) {
+	//Given
+	engine := gin.New()
+	mockOrderService := &mocks.MockOrderService{}
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+	serviceReq.LastName = ""
+	controller := NewOrderController(mockOrderService)
+	controller.Register(engine)
+	w := httptest.NewRecorder()
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	req, _ := http.NewRequest("PUT", "/orders/123456", reqBodyBytes)
+	engine.ServeHTTP(w, req)
+
+	//Then
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	errResponse := response.ErrorResponse{}
+	_ = json.Unmarshal(w.Body.Bytes(), &errResponse)
+	assert.Equal(t, constants.LastNameIsNotValid, errResponse.Message)
+	mockOrderService.AssertNumberOfCalls(t, "UpdateOrder", 0)
+}
+
+func TestUpdateOrder_WhenTotalAmountIsNotValid_ReturnsBadRequest(t *testing.T) {
+	//Given
+	engine := gin.New()
+	mockOrderService := &mocks.MockOrderService{}
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+	serviceReq.TotalAmount = 0
+	controller := NewOrderController(mockOrderService)
+	controller.Register(engine)
+	w := httptest.NewRecorder()
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	req, _ := http.NewRequest("PUT", "/orders/123456", reqBodyBytes)
+	engine.ServeHTTP(w, req)
+
+	//Then
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	errResponse := response.ErrorResponse{}
+	_ = json.Unmarshal(w.Body.Bytes(), &errResponse)
+	assert.Equal(t, constants.TotalAmountIsNotValid, errResponse.Message)
+	mockOrderService.AssertNumberOfCalls(t, "UpdateOrder", 0)
+}
+
+func TestUpdateOrder_WhenAddressIsNotValid_ReturnsBadRequest(t *testing.T) {
+	//Given
+	engine := gin.New()
+	mockOrderService := &mocks.MockOrderService{}
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+	serviceReq.Address = ""
+	controller := NewOrderController(mockOrderService)
+	controller.Register(engine)
+	w := httptest.NewRecorder()
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	req, _ := http.NewRequest("PUT", "/orders/123456", reqBodyBytes)
+	engine.ServeHTTP(w, req)
+
+	//Then
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	errResponse := response.ErrorResponse{}
+	_ = json.Unmarshal(w.Body.Bytes(), &errResponse)
+	assert.Equal(t, constants.AddressIsNotValid, errResponse.Message)
+	mockOrderService.AssertNumberOfCalls(t, "UpdateOrder", 0)
+}
+
+func TestUpdateOrder_WhenCityIsNotValid_ReturnsBadRequest(t *testing.T) {
+	//Given
+	engine := gin.New()
+	mockOrderService := &mocks.MockOrderService{}
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+	serviceReq.City = ""
+	controller := NewOrderController(mockOrderService)
+	controller.Register(engine)
+	w := httptest.NewRecorder()
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	req, _ := http.NewRequest("PUT", "/orders/123456", reqBodyBytes)
+	engine.ServeHTTP(w, req)
+
+	//Then
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	errResponse := response.ErrorResponse{}
+	_ = json.Unmarshal(w.Body.Bytes(), &errResponse)
+	assert.Equal(t, constants.CityIsNotValid, errResponse.Message)
+	mockOrderService.AssertNumberOfCalls(t, "UpdateOrder", 0)
+}
+
+func TestUpdateOrder_WhenDistrictIsNotValid_ReturnsBadRequest(t *testing.T) {
+	//Given
+	engine := gin.New()
+	mockOrderService := &mocks.MockOrderService{}
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+	serviceReq.District = ""
+	controller := NewOrderController(mockOrderService)
+	controller.Register(engine)
+	w := httptest.NewRecorder()
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	req, _ := http.NewRequest("PUT", "/orders/123456", reqBodyBytes)
+	engine.ServeHTTP(w, req)
+
+	//Then
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	errResponse := response.ErrorResponse{}
+	_ = json.Unmarshal(w.Body.Bytes(), &errResponse)
+	assert.Equal(t, constants.DistrictIsNotValid, errResponse.Message)
+	mockOrderService.AssertNumberOfCalls(t, "UpdateOrder", 0)
+}
+
+func TestUpdateOrder_WhenCurrencyCodeIsNotValid_ReturnsBadRequest(t *testing.T) {
+	//Given
+	engine := gin.New()
+	mockOrderService := &mocks.MockOrderService{}
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+	serviceReq.CurrencyCode = ""
+	controller := NewOrderController(mockOrderService)
+	controller.Register(engine)
+	w := httptest.NewRecorder()
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	req, _ := http.NewRequest("PUT", "/orders/123456", reqBodyBytes)
+	engine.ServeHTTP(w, req)
+
+	//Then
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	errResponse := response.ErrorResponse{}
+	_ = json.Unmarshal(w.Body.Bytes(), &errResponse)
+	assert.Equal(t, constants.CurrencyCodeIsNotValid, errResponse.Message)
+	mockOrderService.AssertNumberOfCalls(t, "UpdateOrder", 0)
+}
+
+func TestUpdateOrder_WhenOrderServiceReturnsError_returnsInternalServerError(t *testing.T) {
+	//Given
+	engine := gin.New()
+	mockOrderService := &mocks.MockOrderService{}
+	serviceErr := response.NewErrorBuilder().
+		SetError(http.StatusInternalServerError, "test").
+		Build()
+	mockOrderService.On("UpdateOrder", mock.Anything, mock.Anything).Return(&serviceErr)
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getCreateOrderRequest()), serviceReq)
+	controller := NewOrderController(mockOrderService)
+	controller.Register(engine)
+	w := httptest.NewRecorder()
+	reqBodyBytes := new(bytes.Buffer)
+	_ = json.NewEncoder(reqBodyBytes).Encode(*serviceReq)
+
+	//When
+	req, _ := http.NewRequest("PUT", "/orders/123456", reqBodyBytes)
 	engine.ServeHTTP(w, req)
 
 	//Then
@@ -527,6 +797,18 @@ func TestDeleteOrder_WhenOrderServiceReturnsError_returnsInternalServerError(t *
 func getCreateOrderRequest() string {
 	return `{
   "orderNumber": "1",
+  "firstName": "Test",
+  "lastName": "Sample",
+  "totalAmount": 10.2,
+  "address": "address",
+  "city": "İstanbul",
+  "district": "Bakırköy",
+  "currencyCode": "TRY"
+}`
+}
+
+func getUpdateOrderRequest() string {
+	return `{
   "firstName": "Test",
   "lastName": "Sample",
   "totalAmount": 10.2,

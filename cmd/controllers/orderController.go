@@ -177,6 +177,104 @@ func (controller *OrderController) CreateOrder() func(context *gin.Context) {
 }
 
 // @Tags OrderController
+// @Description Update Order
+// @Produce json
+// @Success 204
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /orders/{orderNumber} [put]
+// @Param orderNumber path string true "orderNumber"
+// @Param request body request.UpdateOrderRequest true "Update Order Request"
+func (controller *OrderController) UpdateOrder() func(context *gin.Context) {
+	return func(context *gin.Context) {
+		orderNumber, orderNumberErr := getStringParam(context, constants.OrderNumber)
+		if !helpers.IsValidString(orderNumber, orderNumberErr) {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.OrderNumberIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		var updateOrderRequest *request.UpdateOrderRequest
+		_ = mapstructure.Decode(getRequestBody(updateOrderRequest, context), &updateOrderRequest)
+
+		if updateOrderRequest == nil {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.UpdateOrderRequestIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if len(strings.TrimSpace(updateOrderRequest.FirstName)) == 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.FirstNameIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if len(strings.TrimSpace(updateOrderRequest.LastName)) == 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.LastNameIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if updateOrderRequest.TotalAmount <= 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.TotalAmountIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if len(strings.TrimSpace(updateOrderRequest.Address)) == 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.AddressIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if len(strings.TrimSpace(updateOrderRequest.City)) == 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.CityIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if len(strings.TrimSpace(updateOrderRequest.District)) == 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.DistrictIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		if len(strings.TrimSpace(updateOrderRequest.CurrencyCode)) == 0 {
+			errorResponse := response.NewErrorBuilder().
+				SetError(http.StatusBadRequest, constants.CurrencyCodeIsNotValid).
+				Build()
+			context.JSON(errorResponse.StatusCode, errorResponse)
+			return
+		}
+
+		createErr := controller.orderService.UpdateOrder(orderNumber, *updateOrderRequest)
+		if createErr != nil {
+			context.JSON(createErr.StatusCode, createErr)
+			return
+		}
+
+		context.JSON(http.StatusNoContent, "")
+	}
+}
+
+// @Tags OrderController
 // @Description Delete Order
 // @Produce json
 // @Success 204
@@ -210,5 +308,6 @@ func (controller *OrderController) Register(engine *gin.Engine) {
 	engine.GET("/orders", controller.GetOrders())
 	engine.GET("/orders/:orderNumber", controller.GetOrderByOrderNumber())
 	engine.POST("/orders", controller.CreateOrder())
+	engine.PUT("/orders/:orderNumber", controller.UpdateOrder())
 	engine.DELETE("/orders/:orderNumber", controller.DeleteOrder())
 }

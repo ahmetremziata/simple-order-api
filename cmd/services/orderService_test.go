@@ -172,7 +172,7 @@ func TestCreateOrder_WhenOrderAlreadyExistWithSameOrderNumber_ReturnsStatusConfl
 	assert.Equal(t, constants.SameOrderFoundByUniqueId, err.Message)
 }
 
-func TestCreateOrder_WhenOrderRepositoryDeleteMethodReturnsError_ReturnsError(t *testing.T) {
+func TestCreateOrder_WhenOrderRepositoryCreateMethodReturnsError_ReturnsError(t *testing.T) {
 	//Given
 	mockOrderRepository := &mocks.MockOrderRepository{}
 	serviceReq := &request.CreateOrderRequest{}
@@ -187,6 +187,145 @@ func TestCreateOrder_WhenOrderRepositoryDeleteMethodReturnsError_ReturnsError(t 
 
 	//When
 	err := service.CreateOrder(*serviceReq)
+
+	//Then
+	assert.NotNil(t, err)
+	assert.Equal(t, &serviceErr, err)
+}
+
+func TestUpdateOrder(t *testing.T) {
+	//Given
+	orderNumber := "1"
+	mockOrderRepository := &mocks.MockOrderRepository{}
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+	order := response.Order{
+		OrderNumber:  "1",
+		FirstName:    "Ahmet",
+		LastName:     "Ata",
+		TotalAmount:  121.13,
+		Address:      "Lorem ipsum dolor sit amet",
+		City:         "İstanbul",
+		District:     "Silivri",
+		StatusId:     int(enum.Created),
+		CurrencyCode: "TR",
+	}
+
+	mockOrderRepository.On("FetchOrderByOrderNumber", mock.Anything).Return(&order, nil)
+	mockOrderRepository.On("UpdateOrder", mock.Anything, mock.Anything).Return(nil)
+	service := NewOrderService(mockOrderRepository)
+
+	//When
+	err := service.UpdateOrder(orderNumber, *serviceReq)
+
+	//Then
+	assert.Nil(t, err)
+	mockOrderRepository.AssertNumberOfCalls(t, "FetchOrderByOrderNumber", 1)
+	mockOrderRepository.AssertCalled(t, "FetchOrderByOrderNumber", orderNumber)
+	mockOrderRepository.AssertNumberOfCalls(t, "UpdateOrder", 1)
+	mockOrderRepository.AssertCalled(t, "UpdateOrder", orderNumber, *serviceReq)
+}
+
+func TestUpdateOrder_WhenOrderRepositoryGetMethodReturnsError_ReturnsError(t *testing.T) {
+	//Given
+	orderNumber := "1"
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+	mockOrderRepository := &mocks.MockOrderRepository{}
+	serviceErr := response.NewErrorBuilder().
+		SetError(http.StatusInternalServerError, "test").
+		Build()
+
+	mockOrderRepository.On("FetchOrderByOrderNumber", mock.Anything).Return(nil, &serviceErr)
+	service := NewOrderService(mockOrderRepository)
+
+	//When
+	err := service.UpdateOrder(orderNumber, *serviceReq)
+
+	//Then
+	assert.NotNil(t, err)
+	assert.Equal(t, &serviceErr, err)
+}
+
+func TestUpdateOrder_WhenOrderNotFoundInRepository_ReturnsNotFound(t *testing.T) {
+	//Given
+	orderNumber := "1"
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+	mockOrderRepository := &mocks.MockOrderRepository{}
+
+	mockOrderRepository.On("FetchOrderByOrderNumber", mock.Anything).Return(nil, nil)
+	service := NewOrderService(mockOrderRepository)
+
+	//When
+	err := service.UpdateOrder(orderNumber, *serviceReq)
+
+	//Then
+	assert.NotNil(t, err)
+	assert.Equal(t, http.StatusNotFound, err.StatusCode)
+	assert.Equal(t, constants.OrderNotFoundByOrderNumber, err.Message)
+}
+
+func TestUpdateOrder_WhenStatusIsNotValidForDeletion_ReturnsError(t *testing.T) {
+	for _, statusId := range statusIdsThatNotBeValidForChangable {
+		t.Run(fmt.Sprintf("StatusId:%d", statusId), func(t *testing.T) {
+			orderNumber := "1"
+			serviceReq := &request.UpdateOrderRequest{}
+			_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+			mockOrderRepository := &mocks.MockOrderRepository{}
+			order := response.Order{
+				OrderNumber:  "1",
+				FirstName:    "Ahmet",
+				LastName:     "Ata",
+				TotalAmount:  121.13,
+				Address:      "Lorem ipsum dolor sit amet",
+				City:         "İstanbul",
+				District:     "Silivri",
+				StatusId:     statusId,
+				CurrencyCode: "TR",
+			}
+
+			mockOrderRepository.On("FetchOrderByOrderNumber", mock.Anything).Return(&order, nil)
+			service := NewOrderService(mockOrderRepository)
+
+			//When
+			err := service.UpdateOrder(orderNumber, *serviceReq)
+
+			//Then
+			assert.NotNil(t, err)
+			assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+			assert.Equal(t, constants.OrderChangeNotPermittedBecauseOfStatus, err.Message)
+		})
+	}
+}
+
+func TestUpdateOrder_WhenOrderRepositoryUpdateMethodReturnsError_ReturnsError(t *testing.T) {
+	//Given
+	orderNumber := "1"
+	mockOrderRepository := &mocks.MockOrderRepository{}
+	serviceReq := &request.UpdateOrderRequest{}
+	_ = json.Unmarshal([]byte(getUpdateOrderRequest()), serviceReq)
+
+	order := response.Order{
+		OrderNumber:  "1",
+		FirstName:    "Ahmet",
+		LastName:     "Ata",
+		TotalAmount:  121.13,
+		Address:      "Lorem ipsum dolor sit amet",
+		City:         "İstanbul",
+		District:     "Silivri",
+		StatusId:     int(enum.Created),
+		CurrencyCode: "TR",
+	}
+	mockOrderRepository.On("FetchOrderByOrderNumber", mock.Anything).Return(&order, nil)
+	serviceErr := response.NewErrorBuilder().
+		SetError(http.StatusInternalServerError, "test").
+		Build()
+	mockOrderRepository.On("UpdateOrder", mock.Anything, mock.Anything).Return(&serviceErr)
+	service := NewOrderService(mockOrderRepository)
+
+	//When
+	err := service.UpdateOrder(orderNumber, *serviceReq)
 
 	//Then
 	assert.NotNil(t, err)
@@ -291,12 +430,6 @@ func TestDeleteOrder_WhenStatusIsNotValidForDeletion_ReturnsError(t *testing.T) 
 	}
 }
 
-var statusIdsThatNotBeValidForDeletion = []int{
-	int(enum.Transferred),
-	int(enum.Shipped),
-	int(enum.Delivered),
-}
-
 func TestDeleteOrder_WhenOrderRepositoryDeleteMethodReturnsError_ReturnsError(t *testing.T) {
 	//Given
 	orderNumber := "1"
@@ -339,4 +472,28 @@ func getCreateOrderRequest() string {
   "district": "Bakırköy",
   "currencyCode": "TRY"
 }`
+}
+
+func getUpdateOrderRequest() string {
+	return `{
+  "firstName": "Test",
+  "lastName": "Sample",
+  "totalAmount": 10.2,
+  "address": "address",
+  "city": "İstanbul",
+  "district": "Bakırköy",
+  "currencyCode": "TRY"
+}`
+}
+
+var statusIdsThatNotBeValidForDeletion = []int{
+	int(enum.Transferred),
+	int(enum.Shipped),
+	int(enum.Delivered),
+}
+
+var statusIdsThatNotBeValidForChangable = []int{
+	int(enum.Transferred),
+	int(enum.Shipped),
+	int(enum.Delivered),
 }

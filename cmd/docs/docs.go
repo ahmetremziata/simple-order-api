@@ -141,6 +141,56 @@ const docTemplate = `{
                     }
                 }
             },
+            "put": {
+                "description": "Update Order",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OrderController"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "orderNumber",
+                        "name": "orderNumber",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Order Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "description": "Delete Order",
                 "produces": [
@@ -188,6 +238,9 @@ const docTemplate = `{
         "request.CreateOrderRequest": {
             "type": "object",
             "properties": {
+                "address": {
+                    "type": "string"
+                },
                 "city": {
                     "type": "string"
                 },
@@ -206,7 +259,30 @@ const docTemplate = `{
                 "orderNumber": {
                     "type": "string"
                 },
-                "string": {
+                "totalAmount": {
+                    "type": "number"
+                }
+            }
+        },
+        "request.UpdateOrderRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "currencyCode": {
+                    "type": "string"
+                },
+                "district": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "lastName": {
                     "type": "string"
                 },
                 "totalAmount": {

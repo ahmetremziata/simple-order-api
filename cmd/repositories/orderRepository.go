@@ -11,6 +11,7 @@ type OrderRepository interface {
 	FetchOrders() ([]response.Order, *response.ErrorResponse)
 	FetchOrderByOrderNumber(orderNumber string) (*response.Order, *response.ErrorResponse)
 	CreateOrder(createOrderRequest request.CreateOrderRequest) *response.ErrorResponse
+	UpdateOrder(orderNumber string, updateOrderRequest request.UpdateOrderRequest) *response.ErrorResponse
 	DeleteOrder(orderNumber string) *response.ErrorResponse
 }
 
@@ -45,6 +46,18 @@ func (o OrderRepositoryImp) CreateOrder(createOrderRequest request.CreateOrderRe
 		CurrencyCode: createOrderRequest.CurrencyCode,
 		StatusId:     int(enum.Created),
 	})
+	return nil
+}
+
+func (o OrderRepositoryImp) UpdateOrder(orderNumber string, updateOrderRequest request.UpdateOrderRequest) *response.ErrorResponse {
+	order, _ := o.FetchOrderByOrderNumber(orderNumber)
+	order.City = updateOrderRequest.City
+	order.District = updateOrderRequest.District
+	order.Address = updateOrderRequest.Address
+	order.CurrencyCode = updateOrderRequest.CurrencyCode
+	order.TotalAmount = updateOrderRequest.TotalAmount
+	order.FirstName = updateOrderRequest.FirstName
+	order.LastName = updateOrderRequest.LastName
 	return nil
 }
 

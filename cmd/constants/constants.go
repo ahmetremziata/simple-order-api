@@ -14,4 +14,6 @@ const (
 	OrderDeletionNotPermittedBecauseOfStatus = "order.deletion.not.permitted.because.of.status"
 	SameOrderFoundByUniqueId                 = "same.order.found.by.unique.id"
 	CreateOrderRequestIsNotValid             = "create.order.request.is.not.valid"
+	UpdateOrderRequestIsNotValid             = "update.order.request.is.not.valid"
+	OrderChangeNotPermittedBecauseOfStatus   = "order.change.not.permitted.because.of.status"
 )
